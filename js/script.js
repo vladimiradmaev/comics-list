@@ -3,7 +3,8 @@ class ComicsList {
     constructor() {
         this._itemsList = this.getList();
         this._totalPrice = 0;
-        this.selectedItems = [];
+        this._selectedItems = [];
+        this._itemsWrapper = document.querySelector('.items-wrapper');
         this.init();
         this.initHandlers();
     }
@@ -119,25 +120,61 @@ class ComicsList {
     }
 
     getTotalPrice() {
-        return Number(this._totalPrice);
+        return this._totalPrice;
     }
 
-    setTotalPrice(newPrice) {
-        this._totalPrice = Number(newPrice);
+    setTotalPrice() {
+        let totalPrice = 0;
+        this._selectedItems.forEach((price) => {
+            totalPrice += price;
+        });
 
         let totalPriceWrapper = document.querySelectorAll('.total-price');
         totalPriceWrapper.forEach((element) => {
-            element.innerHTML = this._totalPrice;
+            element.innerHTML = totalPrice;
         });
+
+        this._totalPrice = totalPrice;
     }
 
     init() {
         let itemsList = this.getItemsList();
-        let itemsWrapper = document.querySelector('.items-wrapper');
 
         for (let item of itemsList) {
-            itemsWrapper.append(this.createItemMarkup(item));
+            this._itemsWrapper.append(this.createItemMarkup(item));
         }
+
+        this.initListBtns()
+        this.initTotal();
+    }
+
+    initTotal() {
+        let template = document.createElement('div');
+        let buttonsWrapper = document.querySelector('.items-list-btn');
+        template.className = 'container total-wrapper';
+        template.innerHTML = `
+            <div class="row">
+                <div class="col-3">
+                    <div class="alert alert-info" role="alert">
+                        Total: <span class="total-price">0</span> ₽
+                    </div>
+                </div>
+            </div>
+        `;
+        this._itemsWrapper.before(template);
+        buttonsWrapper.before(template.cloneNode(true));
+    }
+
+    initListBtns() {
+        let template = document.createElement('div');
+        template.className = 'container items-list-btn';
+        template.innerHTML = `
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary mr-2 clear-btn">Clear all</button>
+                <button type="button" class="btn btn-outline-primary mr-2 select-all-btn">Select all</button>
+            </div>
+        `;
+        this._itemsWrapper.after(template);
     }
 
     createItemMarkup(item) {
@@ -149,7 +186,7 @@ class ComicsList {
             </div>
             <div class="col-1 price">${item.price} ₽</div>
             <div class="col-1">
-                <input type="checkbox" class="select-item" data-price="${item.price}">
+                <input type="checkbox" class="select-item" data-price="${item.price}" data-id="${item.id}">
             </div>
         `;
 
@@ -158,30 +195,32 @@ class ComicsList {
 
     initHandlers() {
         let itemsCheckboxes = document.querySelectorAll('.select-item');
-        let totalPrice = this.getTotalPrice();
 
         itemsCheckboxes.forEach((value) => {
             value.addEventListener('change', (event) => {
                 let currentChecbox = event.currentTarget;
-                let price = Number(event.currentTarget.getAttribute('data-price'));
+                let price = Number(currentChecbox.getAttribute('data-price'));
+                let indexOfItem = this._selectedItems.indexOf(price);
 
-                if (currentChecbox.checked) {
-                    totalPrice += price;
-                } else {
-                    totalPrice -= price;
-                }    
-                this.setTotalPrice(totalPrice);
-            });
-        });
+                if (this._selectedItems.includes(price) && !currentChecbox.checked) {
+                    this._selectedItems.splice(indexOfItem, 1);
+                } else if (!this._selectedItems.includes(price) && currentChecbox.checked) {
+                    this._selectedItems.push(price);
+                }
 
-        document.querySelector('.clear-btn').addEventListener('click', (event) => {
-            this.setTotalPrice(0);
-            itemsCheckboxes.forEach((element) => {
-                element.checked = false;
+                this.setTotalPrice();
             });
         });
 
         let changeEvent = new Event("change");
+
+        document.querySelector('.clear-btn').addEventListener('click', (event) => {
+            itemsCheckboxes.forEach((element) => {
+                element.checked = false;
+                element.dispatchEvent(changeEvent);
+            });
+        });
+
         document.querySelector('.select-all-btn').addEventListener('click', (event) => {
             itemsCheckboxes.forEach((element) => {
                 element.checked = true;
