@@ -1,49 +1,16 @@
-export class Detail {
-    constructor(id) {
-        this._id = id;
+export class List {
+
+    constructor() {
+        this._itemsList = this.getList();
+        this._totalPrice = 0;
+        this._selectedItems = [];
         this._mainWrapper = document.querySelector('.main');
         this.init();
+        this.initHandlers();
     }
 
-    init() {
-        let title = document.createElement('div');
-        title.classList = 'container';
-        title.innerHTML = `
-            <div class="col-12">
-                <h4 class="mt-2 mb-4">Detail page</h4>
-            </div>
-        `;
-        this._mainWrapper.append(title);
-
-        this.showItemDetailData();
-    }
-
-    showItemDetailData() {
-        let itemData = this.getData();
-
-        if (Object.keys(itemData).length > 0) {
-            let detailWrapper = document.createElement('div');
-            detailWrapper.classList = 'container detail-wrapper';
-            detailWrapper.innerHTML = `
-                <div class="col-12">
-                    <p>${itemData.name}</p>
-                </div>
-                <div class="col-12">
-                    <p>Цена: ${itemData.price}</p>
-                </div>
-                <div class="col-12">
-                    <p>${itemData.description}</p>
-                </div>
-            `;
-            this._mainWrapper.append(detailWrapper);
-        }
-    }
-
-    /**
-     * Имитация запроса к апи
-     */
-    getData() {
-        let allItems = [
+    getList() {
+        return [
             {
                 id: 1,
                 name: 'Сингл Светлое новое вчера. Выпуск 0',
@@ -142,17 +109,150 @@ export class Detail {
                 description: `Томас и Марта Уэйн убиты, и их сыну Брюсу нужно понять, как жить дальше. В этом ему поможет разобраться верный дворецкий Альфред и обычная тетрадь со списком дел. Какие задачи поставил перед собой будущий борец с преступность и как ему удалось пережить потерю родителей?.. Ответ вы найдёте в этой трогательной и увлекательной истории о прошлом самого популярного супергероя в мире.`
             }
         ];
+    }
 
-        let result = {};
+    getItemsList() {
+        return this._itemsList;
+    }
 
-        let filteredItem = allItems.filter((item) => {
-            return item.id === this._id;
+    setItemsList(items) {
+        this._itemsList = items;
+    }
+
+    getTotalPrice() {
+        return this._totalPrice;
+    }
+
+    setTotalPrice() {
+        let totalPrice = 0;
+        this._selectedItems.forEach((price) => {
+            totalPrice += price;
         });
 
-        if (filteredItem) {
-            result = filteredItem[0];
+        let totalPriceWrapper = document.querySelectorAll('.total-price');
+        totalPriceWrapper.forEach((element) => {
+            element.innerHTML = totalPrice;
+        });
+
+        this._totalPrice = totalPrice;
+    }
+
+    init() {     
+        let title = document.createElement('div');
+        title.classList = 'container';
+        title.innerHTML = `
+            <div class="col-12">
+                <h4 class="mt-2 mb-4">Comics list</h4>
+            </div>
+        `;
+        this._mainWrapper.append(title);
+
+        let itemWrapperDocument = document.createElement('div');
+        itemWrapperDocument.className = 'container items-wrapper';
+        this._mainWrapper.append(itemWrapperDocument);
+
+        this._itemsWrapper = document.querySelector('.items-wrapper');
+        let itemsList = this.getItemsList();
+
+        for (let item of itemsList) {
+            this._itemsWrapper.append(this.createItemMarkup(item));
         }
 
-        return result;
+        this.initListBtns()
+        this.initTotal();
+    }
+
+    initTotal() {
+        let template = document.createElement('div');
+        let buttonsWrapper = document.querySelector('.items-list-btn');
+        template.className = 'container total-wrapper';
+        template.innerHTML = `
+            <div class="row">
+                <div class="col-3">
+                    <div class="alert alert-info" role="alert">
+                        Total: <span class="total-price">0</span> ₽
+                    </div>
+                </div>
+            </div>
+        `;
+        this._itemsWrapper.before(template);
+        buttonsWrapper.before(template.cloneNode(true));
+    }
+
+    initListBtns() {
+        let template = document.createElement('div');
+        template.className = 'container items-list-btn';
+        template.innerHTML = `
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary mr-2 clear-btn">Clear all</button>
+                <button type="button" class="btn btn-outline-primary mr-2 select-all-btn">Select all</button>
+            </div>
+        `;
+        this._itemsWrapper.after(template);
+    }
+
+    createItemMarkup(item) {
+        let markup = document.createElement('div');
+        markup.className = 'row';
+        markup.innerHTML = `
+            <div class="col-4">
+                <a href="/list/${item.id}/" class="detail-link" data-id="${item.id}">${item.name}</a>
+            </div>
+            <div class="col-1 price">${item.price} ₽</div>
+            <div class="col-1">
+                <input type="checkbox" class="select-item" data-price="${item.price}">
+            </div>
+        `;
+
+        return markup;
+    }
+
+    initHandlers() {
+        let itemsCheckboxes = document.querySelectorAll('.select-item');
+
+        itemsCheckboxes.forEach((value) => {
+            value.addEventListener('change', (event) => {
+                let currentChecbox = event.currentTarget;
+                let price = Number(currentChecbox.getAttribute('data-price'));
+                let indexOfItem = this._selectedItems.indexOf(price);
+
+                if (this._selectedItems.includes(price) && !currentChecbox.checked) {
+                    this._selectedItems.splice(indexOfItem, 1);
+                } else if (!this._selectedItems.includes(price) && currentChecbox.checked) {
+                    this._selectedItems.push(price);
+                }
+
+                this.setTotalPrice();
+            });
+        });
+
+        let changeEvent = new Event("change");
+        let popStateEvent = new Event("popstate");
+
+        let links = document.querySelectorAll('.detail-link');
+        links.forEach((value) => {
+            value.addEventListener('click', (event) => {
+                event.preventDefault();
+                let link = event.target;
+                window.history.pushState({}, link.innerText, link.getAttribute('href'));
+                window.dispatchEvent(popStateEvent);
+            });
+        });
+
+        document.querySelector('.clear-btn').addEventListener('click', (event) => {
+            itemsCheckboxes.forEach((element) => {
+                element.checked = false;
+                element.dispatchEvent(changeEvent);
+            });
+        });
+
+        document.querySelector('.select-all-btn').addEventListener('click', (event) => {
+            itemsCheckboxes.forEach((element) => {
+                element.checked = true;
+                element.dispatchEvent(changeEvent);
+            });
+        });
+
+
     }
 }
