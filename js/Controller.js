@@ -16,13 +16,16 @@ export class Controller {
      */
     init() {
         this.clear();
-        this._url = window.location.pathname;
-        if (this._url === '/') {
-            localStorage.clear();
-            this._page = new List();
-        } else {
-            let itemId = localStorage.getItem('id');            
+        let itemId = window.location.pathname.match(/(?!\/list\/)(\d+)/gm);
+
+        if (itemId) {
+            localStorage.setItem('id', itemId);
+            localStorage.setItem('page', 'detail');
             this._page = new Detail(itemId);
+        } else {
+            localStorage.removeItem('id');
+            localStorage.setItem('page', 'list');
+            this._page = new List();
         }
     }
 

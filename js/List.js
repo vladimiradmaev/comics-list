@@ -181,8 +181,9 @@ export class List {
         }
 
         if (localStorage.getItem('id')) {
-            localStorage.clear();
+            localStorage.removeItem('id');
         }
+        localStorage.setItem('page', 'list');
 
         this.initListBtns()
         this.initTotal();
@@ -273,9 +274,12 @@ export class List {
             value.addEventListener('click', (event) => {
                 event.preventDefault();
                 let link = event.target;
+                
                 let id = link.getAttribute('data-id');
                 localStorage.setItem('id', id);
-                window.history.pushState({}, link.innerText, link.getAttribute('href'));
+                localStorage.setItem('page', 'detail');
+
+                window.history.pushState({id: id}, link.innerText, link.getAttribute('href'));
                 window.dispatchEvent(popStateEvent);
             });
         });
