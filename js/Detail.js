@@ -1,16 +1,23 @@
+/**
+ * Класс работы с детальной страницей элемента
+ */
 export class Detail {
+
     constructor(id) {
-        this._id = id;
+        this._id = Number(id);
         this._mainWrapper = document.querySelector('.main');
         this.init();
     }
 
+    /**
+     * Инициализация отрисовки детальной страницы
+     */
     init() {
         let title = document.createElement('div');
         title.classList = 'container';
         title.innerHTML = `
             <div class="col-12">
-                <h4 class="mt-2 mb-4">Detail page</h4>
+                <h2 class="mt-2 mb-4">Detail page</h4>
             </div>
         `;
         this._mainWrapper.append(title);
@@ -18,29 +25,39 @@ export class Detail {
         this.showItemDetailData();
     }
 
+    /**
+     * Формирование верстки детальной страницы элемента
+     */
     showItemDetailData() {
         let itemData = this.getData();
 
+        let detailWrapper = document.createElement('div');
+        detailWrapper.classList = 'container detail-wrapper';
+
         if (Object.keys(itemData).length > 0) {
-            let detailWrapper = document.createElement('div');
-            detailWrapper.classList = 'container detail-wrapper';
             detailWrapper.innerHTML = `
                 <div class="col-12">
-                    <p>${itemData.name}</p>
-                </div>
-                <div class="col-12">
-                    <p>Цена: ${itemData.price}</p>
+                    <h4>${itemData.name}</h4>
                 </div>
                 <div class="col-12">
                     <p>${itemData.description}</p>
                 </div>
+                <div class="col-12">
+                    <p>Цена: ${itemData.price}</p>
+                </div>
             `;
-            this._mainWrapper.append(detailWrapper);
+        } else {
+            detailWrapper.innerHTML = `
+            <div class="col-12">
+                <h4>404 not found</h4>
+            </div>`;
         }
+
+        this._mainWrapper.append(detailWrapper);
     }
 
     /**
-     * Имитация запроса к апи
+     * Получения информации об элементе (имитация запроса к апи)
      */
     getData() {
         let allItems = [
@@ -149,7 +166,7 @@ export class Detail {
             return item.id === this._id;
         });
 
-        if (filteredItem) {
+        if (filteredItem.length > 0) {
             result = filteredItem[0];
         }
 

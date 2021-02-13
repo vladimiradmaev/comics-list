@@ -1,3 +1,6 @@
+/**
+ * Класс работы со списком элементов
+ */
 export class List {
 
     constructor() {
@@ -9,6 +12,9 @@ export class List {
         this.initHandlers();
     }
 
+    /**
+     * Получения списка элементов (имитация запроса к апи)
+     */
     getList() {
         return [
             {
@@ -111,18 +117,31 @@ export class List {
         ];
     }
 
+    /**
+     * Геттер свойства _itemsList
+     */
     getItemsList() {
         return this._itemsList;
     }
 
+    /**
+     * Сеттер свойства _itemsList
+     * @param {*} items 
+     */
     setItemsList(items) {
         this._itemsList = items;
     }
 
+    /**
+     * Геттер свойства _totalPrice
+     */
     getTotalPrice() {
         return this._totalPrice;
     }
 
+    /**
+     * Сеттер свойства _totalPrice
+     */
     setTotalPrice() {
         let totalPrice = 0;
         this._selectedItems.forEach((price) => {
@@ -137,6 +156,9 @@ export class List {
         this._totalPrice = totalPrice;
     }
 
+    /**
+     * Инициализация отрисовки элементов
+     */
     init() {     
         let title = document.createElement('div');
         title.classList = 'container';
@@ -158,10 +180,17 @@ export class List {
             this._itemsWrapper.append(this.createItemMarkup(item));
         }
 
+        if (localStorage.getItem('id')) {
+            localStorage.clear();
+        }
+
         this.initListBtns()
         this.initTotal();
     }
 
+    /**
+     * Инициализация отрисовки общей стоимости элементов
+     */
     initTotal() {
         let template = document.createElement('div');
         let buttonsWrapper = document.querySelector('.items-list-btn');
@@ -179,6 +208,9 @@ export class List {
         buttonsWrapper.before(template.cloneNode(true));
     }
 
+    /**
+     * Инициализация отрисовки кнопок сброса и выбора всех значений
+     */
     initListBtns() {
         let template = document.createElement('div');
         template.className = 'container items-list-btn';
@@ -191,6 +223,10 @@ export class List {
         this._itemsWrapper.after(template);
     }
 
+    /**
+     * Отрисовка верстки одного элемента в списка
+     * @param {*} item 
+     */
     createItemMarkup(item) {
         let markup = document.createElement('div');
         markup.className = 'row';
@@ -207,6 +243,9 @@ export class List {
         return markup;
     }
 
+    /**
+     * Регистрация обработчиков событий
+     */
     initHandlers() {
         let itemsCheckboxes = document.querySelectorAll('.select-item');
 
@@ -234,6 +273,8 @@ export class List {
             value.addEventListener('click', (event) => {
                 event.preventDefault();
                 let link = event.target;
+                let id = link.getAttribute('data-id');
+                localStorage.setItem('id', id);
                 window.history.pushState({}, link.innerText, link.getAttribute('href'));
                 window.dispatchEvent(popStateEvent);
             });
