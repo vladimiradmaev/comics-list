@@ -1,3 +1,4 @@
-import {Controller} from './Controller.js';
+import { Application } from "./Application.js";
 
-let controller = new Controller();
+let app = new Application();
+app.render();

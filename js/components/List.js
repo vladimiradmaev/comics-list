@@ -1,66 +1,57 @@
+import { ButtonsWrapper } from "./ButtonsWrapper.js";
+import { Item } from "./Item.js";
+import { Title } from "./Title.js";
+import { TotalPrice } from "./TotalPrice.js";
+
 /**
- * Класс работы с детальной страницей элемента
+ * Класс работы со списком элементов
  */
-export class Detail {
+export class List {
 
-    constructor(id) {
-        this._id = Number(id);
-        this._mainWrapper = document.querySelector('.main');
-        this.init();
+    constructor(target) {
+        this._itemsList = this.getList();
+        this._mainWrapper = target;
     }
 
     /**
-     * Инициализация отрисовки детальной страницы
+     * Инициализация отрисовки элементов
      */
-    init() {
-        let title = document.createElement('div');
-        title.classList = 'container';
-        title.innerHTML = `
-            <div class="col-12">
-                <h2 class="mt-2 mb-4">Detail page</h4>
-            </div>
-        `;
-        this._mainWrapper.append(title);
-
-        this.showItemDetailData();
+    init() {     
+        this.render();
     }
 
-    /**
-     * Формирование верстки детальной страницы элемента
-     */
-    showItemDetailData() {
-        let itemData = this.getData();
+    render() {
+        let title = new Title();
+        title.init(this._mainWrapper, 'list');
 
-        let detailWrapper = document.createElement('div');
-        detailWrapper.classList = 'container detail-wrapper';
+        let itemWrapperDocument = document.createElement('div');
+        itemWrapperDocument.className = 'container items-wrapper';
+        this._mainWrapper.append(itemWrapperDocument);
 
-        if (Object.keys(itemData).length > 0) {
-            detailWrapper.innerHTML = `
-                <div class="col-12">
-                    <h4>${itemData.name}</h4>
-                </div>
-                <div class="col-12">
-                    <p>${itemData.description}</p>
-                </div>
-                <div class="col-12">
-                    <p>Цена: ${itemData.price}</p>
-                </div>
-            `;
-        } else {
-            detailWrapper.innerHTML = `
-            <div class="col-12">
-                <h4>404 not found</h4>
-            </div>`;
+        this._itemsWrapper = document.querySelector('.items-wrapper');
+        let itemClass = new Item();
+        
+        for (let item of this._itemsList) {
+            itemClass.init(this._itemsWrapper, item);
         }
 
-        this._mainWrapper.append(detailWrapper);
+        if (localStorage.getItem('id')) {
+            localStorage.removeItem('id');
+        }
+        localStorage.setItem('page', 'list');
+
+        let totalPrice = new TotalPrice();
+        totalPrice.init(this._itemsWrapper);
+
+        let buttonsWrapper = new ButtonsWrapper();
+        buttonsWrapper.init(this._itemsWrapper);
     }
 
     /**
-     * Получения информации об элементе (имитация запроса к апи)
+     * Получения списка элементов (имитация запроса к апи)
      */
-    getData() {
-        let allItems = [
+    getList() {
+        return [
             {
                 id: 1,
                 name: 'Сингл Светлое новое вчера. Выпуск 0',
@@ -159,17 +150,20 @@ export class Detail {
                 description: `Томас и Марта Уэйн убиты, и их сыну Брюсу нужно понять, как жить дальше. В этом ему поможет разобраться верный дворецкий Альфред и обычная тетрадь со списком дел. Какие задачи поставил перед собой будущий борец с преступность и как ему удалось пережить потерю родителей?.. Ответ вы найдёте в этой трогательной и увлекательной истории о прошлом самого популярного супергероя в мире.`
             }
         ];
+    }
 
-        let result = {};
+    /**
+     * Геттер свойства _itemsList
+     */
+    getItemsList() {
+        return this._itemsList;
+    }
 
-        let filteredItem = allItems.filter((item) => {
-            return item.id === this._id;
-        });
-
-        if (filteredItem.length > 0) {
-            result = filteredItem[0];
-        }
-
-        return result;
+    /**
+     * Сеттер свойства _itemsList
+     * @param {*} items 
+     */
+    setItemsList(items) {
+        this._itemsList = items;
     }
 }
